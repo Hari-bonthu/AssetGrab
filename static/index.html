@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AssetGrab Image Extractor - Premium tool to extract, filter, and validate images from PDFs and Office documents.">
+    <title>AssetGrab | Document Image Extractor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow">
+        <div class="glow-1"></div>
+        <div class="glow-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="layers" class="icon-pulse"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AssetGrab</h1>
+                    <span>Image Extraction Suite</span>
+                </div>
+            </div>
+            <p class="tagline">Extract high-fidelity images from PDFs, Word, PowerPoint, Excel, and OpenDocument files instantly.</p>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <!-- Left Side: Config & Upload -->
+            <section class="control-panel">
+                <!-- Config Card -->
+                <div class="glass-card config-card">
+                    <h2 class="card-title"><i data-lucide="sliders"></i> Settings</h2>
+                    
+                    <div class="setting-group">
+                        <label for="engine-select">PDF Extraction Engine</label>
+                        <div class="select-wrapper">
+                            <select id="engine-select" name="engine">
+                                <option value="auto" selected>Auto-Detect (Recommended)</option>
+                                <option value="pymupdf">PyMuPDF (High Speed & Quality)</option>
+                                <option value="pypdf">PyPDF (Pure Python)</option>
+                                <option value="native">Native Stream Decoder (zlib)</option>
+                                <option value="binary">Binary Marker Scanner (Fallback)</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-chevron"></i>
+                        </div>
+                        <p class="setting-desc">Auto selects PyMuPDF if available, falling back to Native stream decoding.</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="slider-header">
+                            <label for="size-slider">Minimum Image Size</label>
+                            <span id="size-val">5 KB</span>
+                        </div>
+                        <input type="range" id="size-slider" name="min_size" min="0" max="100000" step="5000" value="5000" class="styled-slider">
+                        <p class="setting-desc">Filters out layout elements, spacers, and tiny icons.</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="format-select">Format Override</label>
+                        <div class="select-wrapper">
+                            <select id="format-select" name="format">
+                                <option value="" selected>Keep Original Format</option>
+                                <option value="png">Convert to PNG</option>
+                                <option value="jpg">Convert to JPEG</option>
+                                <option value="bmp">Convert to BMP</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-chevron"></i>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="toggle-container">
+                            <label class="switch">
+                                <input type="checkbox" id="dedup-toggle" name="deduplicate" checked>
+                                <span class="slider-toggle"></span>
+                            </label>
+                            <div class="toggle-text">
+                                <span class="toggle-label">Cryptographic Deduplication</span>
+                                <span class="setting-desc">Filters out repeating logos and header graphics.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dropzone Card -->
+                <div class="glass-card dropzone-card" id="dropzone">
+                    <input type="file" id="file-input" accept=".pdf,.docx,.xlsx,.pptx,.odt,.ods,.odp,.zip" style="display: none;">
+                    <div class="dropzone-content">
+                        <div class="upload-icon-container">
+                            <i data-lucide="upload-cloud"></i>
+                        </div>
+                        <h3>Upload Document</h3>
+                        <p>Drag and drop your file here, or <span class="browse-link">browse files</span></p>
+                        <span class="file-limits">PDF, DOCX, PPTX, XLSX, ODT, ZIP (Max 100MB)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Processing and Results -->
+            <section class="results-panel">
+                <!-- Welcome/State Card -->
+                <div class="glass-card state-card" id="empty-state">
+                    <div class="state-icon">
+                        <i data-lucide="image"></i>
+                    </div>
+                    <h2>No Images Extracted Yet</h2>
+                    <p>Select settings and drag in a document on the left to begin the image extraction process.</p>
+                </div>
+
+                <!-- Loader Card -->
+                <div class="glass-card state-card hidden" id="loading-state">
+                    <div class="spinner-container">
+                        <div class="loading-spinner"></div>
+                        <i data-lucide="cpu" class="loader-inner-icon"></i>
+                    </div>
+                    <h2>Processing Document...</h2>
+                    <p id="loader-text">Reading structures and extracting XObject image streams...</p>
+                </div>
+
+                <!-- Gallery Grid Card -->
+                <div class="gallery-wrapper hidden" id="gallery-state">
+                    <div class="gallery-header">
+                        <div class="gallery-info">
+                            <h2 id="gallery-title">Extracted Images</h2>
+                            <span id="gallery-meta" class="meta-badge">90 Images Extracted</span>
+                        </div>
+                        <div class="gallery-actions">
+                            <button id="btn-open-folder" class="btn btn-secondary">
+                                <i data-lucide="folder-open"></i> Open Folder
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="gallery-path-row hidden" id="gallery-path-row">
+                        <span class="path-label">Storage Location:</span>
+                        <code id="gallery-path-text">C:\results\...</code>
+                        <button id="btn-copy-path" class="btn-copy" title="Copy Path"><i data-lucide="copy"></i></button>
+                    </div>
+
+                    <div class="image-grid" id="image-grid">
+                        <!-- Dynamic items will go here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div class="modal hidden" id="preview-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn"><i data-lucide="x"></i></button>
+            <div class="modal-image-container">
+                <img id="modal-image" src="" alt="Extracted Preview">
+            </div>
+            <div class="modal-info">
+                <span id="modal-filename" class="modal-title">extracted_image_1.jpg</span>
+                <div class="modal-meta-row">
+                    <span id="modal-dimensions"><i data-lucide="maximize-2"></i> 1920x1080</span>
+                    <span id="modal-filesize"><i data-lucide="database"></i> 142 KB</span>
+                    <a id="modal-download" href="" download class="btn btn-primary btn-sm">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

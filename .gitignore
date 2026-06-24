@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local environment / dependencies
+.venv/
+venv/
+ENV/
+env/
+
+# Project-specific results (extracted images from runs)
+results/
+temp/
+tmp/
+
+# OS specific files
+.DS_Store
+Thumbs.db
